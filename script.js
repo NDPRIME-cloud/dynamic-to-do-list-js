@@ -27,7 +27,7 @@ function addTask() {
     taskList.appendChild(li); // adds the whole li to tasklist
 
     taskInput.value = ""
-    }
+     }
 
 }
 
