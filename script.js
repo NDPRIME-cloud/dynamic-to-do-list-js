@@ -10,7 +10,7 @@ function addTask() {
         return;
 
     }
-    
+    if (taskList !== ""){
         const li =document.createElement("li");
         li.textContent = taskText;
         
@@ -27,6 +27,7 @@ function addTask() {
     taskList.appendChild(li); // adds the whole li to tasklist
 
     taskInput.value = ""
+    }
 
 }
 
