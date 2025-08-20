@@ -252,7 +252,6 @@
 // });
 
 
-
 document.addEventListener("DOMContentLoaded", function () {
   const addButton = document.getElementById("add-task-btn");
   const taskInput = document.getElementById("task-input");
@@ -262,86 +261,51 @@ document.addEventListener("DOMContentLoaded", function () {
   // Ask for notification permission once
   if (Notification.permission !== "granted") {
     Notification.requestPermission().then(permission => {
-      console.log("Notification permission:", permission);
       if (permission !== "granted") {
         alert("Please allow notifications in your browser!");
       }
     });
   }
 
-  // ✅ Save tasks to localStorage
+  // ---- Save tasks to localStorage ----
   function saveTasks() {
     let tasks = [];
     taskList.querySelectorAll("li").forEach(li => {
       tasks.push({
         text: li.dataset.task,
-        time: li.dataset.time || null
+        reminder: li.dataset.reminder || null
       });
     });
     localStorage.setItem("tasks", JSON.stringify(tasks));
   }
 
-  // ✅ Load tasks from localStorage
-  function loadTasks() {
-    let saved = JSON.parse(localStorage.getItem("tasks")) || [];
-    saved.forEach(task => {
-      renderTask(task.text, task.time);
-    });
-  }
+  // ---- Schedule reminder ----
+  function scheduleReminder(taskText, reminderTime) {
+    if (!reminderTime) return;
 
-  function renderTask(taskText, timeValue) {
     let now = new Date();
+    let delay = reminderTime - now;
 
-    // Create li
-    const li = document.createElement("li");
-    li.dataset.task = taskText;
-    li.textContent = taskText;
-
-    let reminderTime;
-    if (timeValue) {
-      reminderTime = new Date();
-      let [hours, minutes] = timeValue.split(":");
-      reminderTime.setHours(hours, minutes, 0, 0);
-      li.textContent += ` (reminder: ${timeValue})`;
-      li.dataset.time = timeValue; // save for reload
+    if (delay <= 0) {
+      reminderTime.setDate(reminderTime.getDate() + 1); // push to tomorrow
+      delay = reminderTime - now;
     }
 
-    // Remove button
-    const removeBtn = document.createElement("button");
-    removeBtn.textContent = "Remove";
-    removeBtn.className = "remove-btn";
-    removeBtn.onclick = function () {
-      taskList.removeChild(li);
-      saveTasks(); // update storage
-    };
-
-    li.appendChild(removeBtn);
-    taskList.appendChild(li);
-
-    // ✅ Schedule notification if time set
-    if (reminderTime) {
-      let delay = reminderTime - now;
-
-      if (delay <= 0) {
-        reminderTime.setDate(reminderTime.getDate() + 1);
-        delay = reminderTime - now;
+    setTimeout(() => {
+      if (Notification.permission === "granted") {
+        new Notification("⏰ Reminder", {
+          body: taskText,
+          icon: "https://cdn-icons-png.flaticon.com/512/1827/1827392.png"
+        });
       }
-
-      
-  setTimeout(() => {
-    if (Notification.permission === "granted") {
-      new Notification("⏰ Reminder", {
-        body: taskText,
-        icon: "https://cdn-icons-png.flaticon.com/512/1827/1827392.png"
-      });
-    }
-  }, delay);
-    }
+    }, delay);
   }
 
-  function addTask() {
-    let taskText = taskInput.value.trim();
-    let timeValue = reminderInput.value;
+  // ---- Add a new task ----
+  function addTask(taskText = null, reminderStr = null) {
+    taskText = taskText || taskInput.value.trim();
+    let timeValue = reminderStr || reminderInput.value;
+    let reminderTime = null;
 
     if (taskText === "") {
       alert("Please enter a task!");
@@ -357,21 +321,59 @@ document.addEventListener("DOMContentLoaded", function () {
       }
     }
 
-    renderTask(taskText, timeValue);
-    saveTasks(); // save new task
+    // Create li
+    const li = document.createElement("li");
+    li.dataset.task = taskText;
+    li.textContent = taskText;
+
+    if (timeValue) {
+      reminderTime = new Date();
+      let [hours, minutes] = timeValue.split(":");
+      reminderTime.setHours(hours, minutes, 0, 0);
+      li.dataset.reminder = timeValue;
+      li.textContent += ` (reminder: ${timeValue})`;
+    }
+
+    // Remove button
+    const removeBtn = document.createElement("button");
+    removeBtn.textContent = "Remove";
+    removeBtn.className = "remove-btn";
+    removeBtn.onclick = function () {
+      taskList.removeChild(li);
+      saveTasks();
+    };
+
+    li.appendChild(removeBtn);
+    taskList.appendChild(li);
+
+    // Schedule reminder
+    if (reminderTime) {
+      scheduleReminder(taskText, reminderTime);
+    }
+
+    saveTasks();
 
     // reset inputs
     taskInput.value = "";
     reminderInput.value = "";
   }
 
-  addButton.addEventListener("click", addTask);
+  // ---- Load saved tasks from localStorage ----
+  function loadTasks() {
+    let saved = JSON.parse(localStorage.getItem("tasks")) || [];
+    saved.forEach(task => {
+      addTask(task.text, task.reminder);
+    });
+  }
+
+  // Event listeners
+  addButton.addEventListener("click", () => addTask());
   taskInput.addEventListener("keypress", function (event) {
     if (event.key === "Enter") {
       addTask();
     }
   });
 
-  // ✅ Load saved tasks on startup
+  // Load tasks on page start
   loadTasks();
 });
