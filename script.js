@@ -327,12 +327,15 @@ document.addEventListener("DOMContentLoaded", function () {
         delay = reminderTime - now;
       }
 
-      setTimeout(() => {
-        new Notification("⏰ Reminder", {
-          body: taskText,
-          icon: "https://cdn-icons-png.flaticon.com/512/1827/1827392.png"
-        });
-      }, delay);
+      
+  setTimeout(() => {
+    if (Notification.permission === "granted") {
+      new Notification("⏰ Reminder", {
+        body: taskText,
+        icon: "https://cdn-icons-png.flaticon.com/512/1827/1827392.png"
+      });
+    }
+  }, delay);
     }
   }
 
