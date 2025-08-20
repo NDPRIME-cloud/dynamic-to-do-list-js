@@ -586,12 +586,12 @@ document.addEventListener("DOMContentLoaded", function () {
     function updateCountdown() {
       const remaining = reminderTime.getTime() - Date.now();
       if (remaining <= 0) {
-        countdownEl.textContent = "⏰ Due now!";
+        countdownEl.textContent = "⏰";
         return true;
       }
       const mins = Math.floor(remaining / 60000);
       const secs = Math.floor((remaining % 60000) / 1000);
-      countdownEl.textContent = `⏳ ${mins}m ${secs}s`;
+      countdownEl.textContent = ` ${mins}m ${secs}s`;
       return false;
     }
 
