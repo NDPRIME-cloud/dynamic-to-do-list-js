@@ -149,28 +149,196 @@
 // });
 
 
+// document.addEventListener("DOMContentLoaded", function () {
+//   const addButton = document.getElementById("add-task-btn");
+//   const taskInput = document.getElementById("task-input");
+//   const taskList = document.getElementById("task-list");
+//   const reminderInput = document.getElementById("reminder-time");
+
+//   //  Ask for notification permission once
+//   if (Notification.permission !== "granted") {
+//   Notification.requestPermission().then(permission => {
+//     console.log("Notification permission:", permission);
+//     if (permission !== "granted") {
+//       alert("Please allow notifications in your browser!");
+//     }
+//   });
+// }
+
+
+
+//   function addTask() {
+//     let taskText = taskInput.value.trim();
+//     let timeValue = reminderInput.value; // e.g. "14:30"
+//     let now = new Date();
+
+//     if (taskText === "") {
+//       alert("Please enter a task!");
+//       return;
+//     }
+
+//     // Duplicate check
+//     let tasks = taskList.getElementsByTagName("li");
+//     for (let task of tasks) {
+//       if (task.dataset.task === taskText) {
+//         alert("Task already added");
+//         return;
+//       }
+//     }
+
+//     // Create li
+//     const li = document.createElement("li");
+//     li.dataset.task = taskText;
+//     li.textContent = taskText;
+
+//     let reminderTime;
+//     if (timeValue) {
+//       // build reminder date using today's date + chosen time
+//       reminderTime = new Date();
+//       let [hours, minutes] = timeValue.split(":");
+//       reminderTime.setHours(hours, minutes, 0, 0);
+
+//       li.textContent += ` (reminder: ${timeValue})`;
+//     }
+
+//     // Remove button
+//     const removeBtn = document.createElement("button");
+//     removeBtn.textContent = "Remove";
+//     removeBtn.className = "remove-btn";
+//     removeBtn.onclick = function () {
+//       taskList.removeChild(li);
+//     };
+
+//     li.appendChild(removeBtn);
+//     taskList.appendChild(li);
+
+//     // // ✅ Schedule browser notification
+//     // if (reminderTime) {
+//     //   let delay = reminderTime - now;
+//     //   if (delay > 0) {
+//     //     setTimeout(() => {
+//     //       new Notification("⏰ Reminder", {
+//     //         body: taskText,
+//     //         icon: "https://cdn-icons-png.flaticon.com/512/1827/1827392.png"
+//     //       });
+//     //     }, delay);
+//     //   }
+//     // }
+//     let delay = reminderTime - now;
+// if (delay <= 0) {
+//   reminderTime.setDate(reminderTime.getDate() + 1); // push to tomorrow
+//   delay = reminderTime - now;
+// }
+
+// setTimeout(() => {
+//   new Notification("⏰ Reminder", {
+//     body: taskText,
+//     icon: "https://cdn-icons-png.flaticon.com/512/1827/1827392.png"
+//   });
+// }, delay);
+
+
+//     // reset inputs
+//     taskInput.value = "";
+//     reminderInput.value = "";
+//   }
+
+//   addButton.addEventListener("click", addTask);
+//   taskInput.addEventListener("keypress", function (event) {
+//     if (event.key === "Enter") {
+//       addTask();
+//     }
+//   });
+// });
+
+
+
 document.addEventListener("DOMContentLoaded", function () {
   const addButton = document.getElementById("add-task-btn");
   const taskInput = document.getElementById("task-input");
   const taskList = document.getElementById("task-list");
   const reminderInput = document.getElementById("reminder-time");
 
-  //  Ask for notification permission once
+  // Ask for notification permission once
   if (Notification.permission !== "granted") {
-  Notification.requestPermission().then(permission => {
-    console.log("Notification permission:", permission);
-    if (permission !== "granted") {
-      alert("Please allow notifications in your browser!");
+    Notification.requestPermission().then(permission => {
+      console.log("Notification permission:", permission);
+      if (permission !== "granted") {
+        alert("Please allow notifications in your browser!");
+      }
+    });
+  }
+
+  // ✅ Save tasks to localStorage
+  function saveTasks() {
+    let tasks = [];
+    taskList.querySelectorAll("li").forEach(li => {
+      tasks.push({
+        text: li.dataset.task,
+        time: li.dataset.time || null
+      });
+    });
+    localStorage.setItem("tasks", JSON.stringify(tasks));
+  }
+
+  // ✅ Load tasks from localStorage
+  function loadTasks() {
+    let saved = JSON.parse(localStorage.getItem("tasks")) || [];
+    saved.forEach(task => {
+      renderTask(task.text, task.time);
+    });
+  }
+
+  function renderTask(taskText, timeValue) {
+    let now = new Date();
+
+    // Create li
+    const li = document.createElement("li");
+    li.dataset.task = taskText;
+    li.textContent = taskText;
+
+    let reminderTime;
+    if (timeValue) {
+      reminderTime = new Date();
+      let [hours, minutes] = timeValue.split(":");
+      reminderTime.setHours(hours, minutes, 0, 0);
+      li.textContent += ` (reminder: ${timeValue})`;
+      li.dataset.time = timeValue; // save for reload
     }
-  });
-}
 
+    // Remove button
+    const removeBtn = document.createElement("button");
+    removeBtn.textContent = "Remove";
+    removeBtn.className = "remove-btn";
+    removeBtn.onclick = function () {
+      taskList.removeChild(li);
+      saveTasks(); // update storage
+    };
 
+    li.appendChild(removeBtn);
+    taskList.appendChild(li);
+
+    // ✅ Schedule notification if time set
+    if (reminderTime) {
+      let delay = reminderTime - now;
+
+      if (delay <= 0) {
+        reminderTime.setDate(reminderTime.getDate() + 1);
+        delay = reminderTime - now;
+      }
+
+      setTimeout(() => {
+        new Notification("⏰ Reminder", {
+          body: taskText,
+          icon: "https://cdn-icons-png.flaticon.com/512/1827/1827392.png"
+        });
+      }, delay);
+    }
+  }
 
   function addTask() {
     let taskText = taskInput.value.trim();
-    let timeValue = reminderInput.value; // e.g. "14:30"
-    let now = new Date();
+    let timeValue = reminderInput.value;
 
     if (taskText === "") {
       alert("Please enter a task!");
@@ -186,57 +354,8 @@ document.addEventListener("DOMContentLoaded", function () {
       }
     }
 
-    // Create li
-    const li = document.createElement("li");
-    li.dataset.task = taskText;
-    li.textContent = taskText;
-
-    let reminderTime;
-    if (timeValue) {
-      // build reminder date using today's date + chosen time
-      reminderTime = new Date();
-      let [hours, minutes] = timeValue.split(":");
-      reminderTime.setHours(hours, minutes, 0, 0);
-
-      li.textContent += ` (reminder: ${timeValue})`;
-    }
-
-    // Remove button
-    const removeBtn = document.createElement("button");
-    removeBtn.textContent = "Remove";
-    removeBtn.className = "remove-btn";
-    removeBtn.onclick = function () {
-      taskList.removeChild(li);
-    };
-
-    li.appendChild(removeBtn);
-    taskList.appendChild(li);
-
-    // // ✅ Schedule browser notification
-    // if (reminderTime) {
-    //   let delay = reminderTime - now;
-    //   if (delay > 0) {
-    //     setTimeout(() => {
-    //       new Notification("⏰ Reminder", {
-    //         body: taskText,
-    //         icon: "https://cdn-icons-png.flaticon.com/512/1827/1827392.png"
-    //       });
-    //     }, delay);
-    //   }
-    // }
-    let delay = reminderTime - now;
-if (delay <= 0) {
-  reminderTime.setDate(reminderTime.getDate() + 1); // push to tomorrow
-  delay = reminderTime - now;
-}
-
-setTimeout(() => {
-  new Notification("⏰ Reminder", {
-    body: taskText,
-    icon: "https://cdn-icons-png.flaticon.com/512/1827/1827392.png"
-  });
-}, delay);
-
+    renderTask(taskText, timeValue);
+    saveTasks(); // save new task
 
     // reset inputs
     taskInput.value = "";
@@ -249,4 +368,7 @@ setTimeout(() => {
       addTask();
     }
   });
+
+  // ✅ Load saved tasks on startup
+  loadTasks();
 });
