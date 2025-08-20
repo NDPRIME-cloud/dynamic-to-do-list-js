@@ -64,3 +64,7 @@ li {
 .remove-btn:hover {
     background-color: #d9534f;
 }
+
+#reminder-time{
+    margin-bottom:  10px;
+}
