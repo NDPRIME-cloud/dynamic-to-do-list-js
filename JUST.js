@@ -73,7 +73,7 @@ if ("Notification" in window) {
       function showNotification() {
         new Notification("⏰ Reminder", {
           body: "Go back to your To-Do List!",
-          icon: "todo-icon.png" // optional
+          icon: "icon.jpg" // optional
         });
       }
 
