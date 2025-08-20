@@ -65,3 +65,24 @@ document.addEventListener("DOMContentLoaded", function () {
   // STEP 7: Load saved tasks from storage when page loads
   loadTasks();
 });
+// STEP 1: Ask for notification permission
+if ("Notification" in window) {
+  Notification.requestPermission().then(permission => {
+    if (permission === "granted") {
+      // STEP 2: Define function
+      function showNotification() {
+        new Notification("⏰ Reminder", {
+          body: "Go back to your To-Do List!",
+          icon: "todo-icon.png" // optional
+        });
+      }
+
+      // STEP 3: Send every 1 hour
+      setInterval(showNotification, 3600000);
+
+      // Optional: send one right now
+      showNotification();
+    }
+  });
+}
+
