@@ -65,24 +65,28 @@ document.addEventListener("DOMContentLoaded", function () {
   // STEP 7: Load saved tasks from storage when page loads
   loadTasks();
 });
-// STEP 1: Ask for notification permission
+// ✅ STEP 8: Notifications every 1 hour with task count
 if ("Notification" in window) {
   Notification.requestPermission().then(permission => {
     if (permission === "granted") {
-      // STEP 2: Define function
       function showNotification() {
-        new Notification("⏰ Reminder", {
-          body: "Go back to your To-Do List!",
-          icon: "icon.jpg" // optional
+        let pendingCount = tasks.length;
+        let message =
+          pendingCount > 0
+            ? `You still have ${pendingCount} task${pendingCount > 1 ? "s" : ""} pending!`
+            : "✅ Great job! No pending tasks right now.";
+
+        new Notification("⏰ To-Do Reminder", {
+          body: message,
+          icon: "icon.jpg" // optional icon
         });
       }
 
-      // STEP 3: Send every 1 hour
-      setInterval(showNotification, 3600000);
-
-      // Optional: send one right now
+      // Send one immediately
       showNotification();
+
+      // Repeat every 1 hour (3600000 ms)
+      setInterval(showNotification, 3600000);
     }
   });
 }
-
